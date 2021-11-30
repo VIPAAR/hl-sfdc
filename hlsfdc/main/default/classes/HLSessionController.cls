@@ -377,6 +377,39 @@ public with sharing class HLSessionController {
     }
 
     /**
+     * Get the session link associated with this email
+     */
+    @AuraEnabled
+    public static string getInviteLink() {
+
+        try {
+            String myUserEmail = helplightning.HLUserHelper.getLogin();
+
+            // first get a list of users to find us, since
+            //  we have to make this request as a specific user
+            List<helplightning.HLModelEnterpriseUser> users = helplightning.HLGaldrClient.searchEnterpriseUsers(myUserEmail);
+            if (users == null || users.size() == 0) {
+                System.debug('Error finding our user.');
+                return null;
+            }
+
+            // use the first user token.
+            String userToken = users.get(0).authToken;
+            if (userToken == null) {
+                System.debug('Invalid user token');
+                return null;
+            }
+
+            helplightning.HLModelInviteLink linkModel = helplightning.HLGaldrClient.getInviteLink(userToken);
+
+            return linkModel.link;
+
+        } catch (helplightning.HLConfigurationException e) {
+            throw new AuraHandledException('The Help Lightning component must be configured first.');
+        }
+    }
+
+    /**
      * Create an HL session between us and another
      *  user actually using sessions.
      * This will return the Gss Auth info

@@ -49,6 +49,9 @@
                                 </div>
                             </div>
                         </div>
+                        <div style="margin-top:8px">
+                            <c:hlInviteLink></c:hlInviteLink>
+                        </div>
                         <div class="slds-float_right" style="margin-top: 15px;">
                             <ui:button class="slds-button slds-button_brand" press="{!c.sendInvite}">
                                     Send

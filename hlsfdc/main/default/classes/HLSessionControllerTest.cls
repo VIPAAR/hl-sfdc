@@ -308,6 +308,30 @@ private class HLSessionControllerTest {
         }
     }
     /**
+     * Mocker for the getInviteLink
+     */
+    class GetInviteLinkMocker implements HttpCalloutMock {
+        public HTTPResponse respond(HTTPRequest req) {
+            URL endpoint = new URL(req.getEndpoint());
+
+            HttpResponse response = new HttpResponse();
+            response.setHeader('Content-Type', 'application/json');
+
+            if (req.getMethod() == 'GET' && endpoint.getPath().startsWith('/api/v1/sessions/link?TypeStr=otu')) {
+                Map<String, Object> result = new Map<String, Object>();
+
+                result.put('link', 'https://r.helplightning.net/dU4JvwnLrhvUFwd97');
+                result.put('signature', 'af304262-d232-404a-9b8b-7c13ee570661');
+
+                response.setStatusCode(200);
+                response.setBody(JSON.serialize(result));
+            } else {
+                response.setStatusCode(500);
+            }
+            return response;
+        }
+    }
+    /**
      * Mocker for the testMakeSessionWith
      */
     class MakeSessionWithMocker implements HttpCalloutMock {
@@ -1383,6 +1407,28 @@ class SendOneTimeUseLinkMocker implements HttpCalloutMock {
                 System.assert(false, 'Caught incorrect exception');
             }
 
+        }
+
+        Test.stopTest();
+    }
+
+    /**
+     * Test getInviteLink
+     */
+    @isTest
+    static void testGetInviteLink() {
+        Profile p = [SELECT Id FROM Profile WHERE Name='Standard User'];
+        User u = new User(Alias = 'support', Email='support@helplightning.com',
+                           EmailEncodingKey='UTF-8', LastName='Support', LanguageLocaleKey='en_US',
+                           LocaleSidKey='en_US', ProfileId = p.Id,
+                           TimeZoneSidKey='America/Chicago', UserName='support@helplightning.com');
+        insert u;
+
+        Test.startTest();
+        Test.setMock(HttpCalloutMock.class, new GetInviteLinkMocker());
+
+        System.RunAs(u) {
+            HLModelInviteLink link = helplightning.HLGaldrClient.getInviteLink('fake');
         }
 
         Test.stopTest();

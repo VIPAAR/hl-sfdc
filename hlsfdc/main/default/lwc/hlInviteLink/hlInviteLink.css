@@ -1,0 +1,6 @@
+.link-icon {
+    --sds-c-icon-color-foreground-default: rgb(1, 118, 211);
+}
+.link-icon:hover {
+    --sds-c-icon-color-foreground-default: rgb(1, 68, 134);
+}
