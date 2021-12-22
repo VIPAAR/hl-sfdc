@@ -298,9 +298,9 @@ public with sharing class HLSessionController {
                                 if (callId == null || callId.equals('')) {
                                     // No matching call ID
                                 } else {
-                                    // Save call attachments.
+                                    // get call attachments and save.
                                     // Need to wrap this in a future call method to prevent race conditions and DML errors
-                                    saveAttachment(callId, recordId);
+                                    getCallAttachments(callId, recordId);
                                 }
                             }
                         } else {
@@ -537,8 +537,14 @@ public with sharing class HLSessionController {
     }
 
     @future(callout = true)
-    private static void saveAttachment(String callId, String recordId) {
+    public static void getCallAttachments(String callId, String recordId) {
         List<HLModelAttachment> attachments = helplightning.HLGaldrClient.getAttachments(callId);
+        saveCallAttachments(attachments, recordId);
+    }
+
+    public static void saveCallAttachments(List<HLModelAttachment> attachments, String recordId) {
+        // Get all attachments from the S3 presigned URLs before saving.
+        List<Attachment> attList = new List<Attachment>();
 
         for (HLModelAttachment a: attachments) {
             // Only save screencaps for now
@@ -551,8 +557,9 @@ public with sharing class HLSessionController {
                 HttpResponse res = h.send(req);
                 Blob bd = res.getBodyAsBlob();
                 Attachment att = new Attachment(Name = a.fileName, Body = bd, ContentType = 'image/jpeg;charset=UTF-8', ParentId=recordId);
-                insert att;
+                attList.add(att);
             }
         }
+        insert attList;
     }
 }

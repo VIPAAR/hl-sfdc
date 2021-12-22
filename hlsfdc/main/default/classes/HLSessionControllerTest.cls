@@ -1489,4 +1489,24 @@ class SendOneTimeUseLinkMocker implements HttpCalloutMock {
 
         Test.stopTest();
     }
+
+    @isTest
+    static void testSaveAttachment() {
+        List<HLModelAttachment> attList = new List<HLModelAttachment>();
+        HLModelAttachment att = new HLModelAttachment(202255, 'incall', 'https://helplightning-proda-call-data.s3.us-east-1.amazonaws.com', 
+        '', 'https://helplightning-proda-call-data.s3.us-east-1.amazonaws.com', 'image/jpeg', 'IMG_CAP_11-04-2021 10-31-27.JPG');
+
+        attList.add(att);
+
+        // We are not allowed to do an DML operations
+        //  before doing a call-out. But, we need test data
+        //  to be inserted first.
+        // This start/stopTest hack works around this.
+        // https://salesforce.stackexchange.com/questions/46438/unit-test-you-have-uncommitted-work-pending-please-commit-or-rollback-before-c
+        Test.startTest();
+
+        helplightning.HLSessionController.saveCallAttachments(attList, '89279834');
+
+        Test.stopTest();
+    }
 }
