@@ -308,6 +308,59 @@ private class HLSessionControllerTest {
         }
     }
     /**
+     * Mocker for the getCallAttachment
+     */
+    class GetCallAttachmentMocker implements HttpCalloutMock {
+        public HTTPResponse respond(HTTPRequest req) {
+            URL endpoint = new URL(req.getEndpoint());
+
+            HttpResponse response = new HttpResponse();
+
+            if (req.getMethod() == 'GET') {
+
+                List<Object> result = new List<Object>();
+
+                result.add(new Map<String,Object>{
+                    'id' => 234234,
+                    'type' => 'incall',
+                    'thumbnail' => 'https://helplightning-proda-call-data.s3.us-east-1.amazonaws.com',
+                    'status' => '',
+                    'signed_url' => 'https://helplightning-proda-call-data.s3.us-east-1.amazonaws.com',
+                    'mime_type' => 'image/jpeg',
+                    'name' => 'IMG_CAP_11-04-2021 10-31-27.JPG'
+                });
+
+                response.setStatusCode(200);
+                response.setBody(JSON.serialize(result));
+            } else {
+                response.setStatusCode(500);
+            }
+            return response;
+        }
+    }
+
+    /**
+     * Mocker for the getCallAttachment
+     */
+    class GetFileFromS3Mocker implements HttpCalloutMock {
+        public HTTPResponse respond(HTTPRequest req) {
+            URL endpoint = new URL(req.getEndpoint());
+
+            HttpResponse response = new HttpResponse();
+            // response.setHeader('Content-Type', 'application/json');
+
+            if (req.getMethod() == 'GET' && endpoint.getPath().startsWith('https://helplightning-proda-call-data.s3.us-east-1.amazonaws.com')) {
+
+                response.setStatusCode(200);
+                response.setBody('mndjfkbgu4rg8');
+            } else {
+                response.setStatusCode(500);
+            }
+            return response;
+        }
+    }
+
+    /**
      * Mocker for the testMakeSessionWith
      */
     class MakeSessionWithMocker implements HttpCalloutMock {
@@ -1391,6 +1444,41 @@ class SendOneTimeUseLinkMocker implements HttpCalloutMock {
     }
 
     /**
+    * Test testSaveAttachment
+    */
+    @isTest
+    static void testSaveAttachment() {
+        Profile p = [SELECT Id FROM Profile WHERE Name='Standard User'];
+        User u1 = new User(Alias = 'support', Email='support@helplightning.com',
+                           EmailEncodingKey='UTF-8', LastName='Support', LanguageLocaleKey='en_US',
+                           LocaleSidKey='en_US', ProfileId = p.Id,
+                           TimeZoneSidKey='America/Chicago', UserName='support@helplightning.com');
+        insert u1;
+
+        Case case1 = new Case(Subject = 'Case 1',
+                Status = 'New',
+                Origin = 'Phone');
+        insert case1;
+
+        // We are not allowed to do an DML operations
+        //  before doing a call-out. But, we need test data
+        //  to be inserted first.
+        // This start/stopTest hack works around this.
+        // https://salesforce.stackexchange.com/questions/46438/unit-test-you-have-uncommitted-work-pending-please-commit-or-rollback-before-c
+        Test.startTest();
+
+        // set up a mock
+        Test.setMock(HttpCalloutMock.class, new GetCallAttachmentMocker());
+
+
+        System.RunAs(u1) {
+            helplightning.HLSessionController.getCallAttachments('234', case1.id);
+        }
+
+        Test.stopTest();
+    }
+
+    /**
      * Test checkRegistration
      */
     @isTest
@@ -1489,5 +1577,5 @@ class SendOneTimeUseLinkMocker implements HttpCalloutMock {
 
         Test.stopTest();
     }
-    
+
 }
