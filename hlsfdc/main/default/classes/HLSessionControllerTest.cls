@@ -340,27 +340,6 @@ private class HLSessionControllerTest {
     }
 
     /**
-     * Mocker for the getCallAttachment
-     */
-    class GetFileFromS3Mocker implements HttpCalloutMock {
-        public HTTPResponse respond(HTTPRequest req) {
-            URL endpoint = new URL(req.getEndpoint());
-
-            HttpResponse response = new HttpResponse();
-            // response.setHeader('Content-Type', 'application/json');
-
-            if (req.getMethod() == 'GET' && endpoint.getPath().startsWith('https://helplightning-proda-call-data.s3.us-east-1.amazonaws.com')) {
-
-                response.setStatusCode(200);
-                response.setBody('mndjfkbgu4rg8');
-            } else {
-                response.setStatusCode(500);
-            }
-            return response;
-        }
-    }
-
-    /**
      * Mocker for the testMakeSessionWith
      */
     class MakeSessionWithMocker implements HttpCalloutMock {
