@@ -539,13 +539,9 @@ public with sharing class HLSessionController {
     @future(callout = true)
     public static void getCallAttachments(String callId, String recordId) {
         List<HLModelAttachment> attachments = helplightning.HLGaldrClient.getAttachments(callId);
-        saveCallAttachments(attachments, recordId);
-    }
-
-    public static void saveCallAttachments(List<HLModelAttachment> attachments, String recordId) {
-        // Get all attachments from the S3 presigned URLs before saving.
         List<Attachment> attList = new List<Attachment>();
 
+        // Get all attachments from the S3 presigned URLs before saving.
         for (HLModelAttachment a: attachments) {
             // Only save screencaps for now
             if (a.mimeType == 'image/jpeg') {
@@ -560,7 +556,7 @@ public with sharing class HLSessionController {
                 attList.add(att);
             }
         }
-        
+
         insert attList;
     }
 }
