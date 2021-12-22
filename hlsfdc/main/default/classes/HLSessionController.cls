@@ -560,6 +560,7 @@ public with sharing class HLSessionController {
                 attList.add(att);
             }
         }
+        
         insert attList;
     }
 }
