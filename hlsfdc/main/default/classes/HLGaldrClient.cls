@@ -92,7 +92,7 @@ public class HLGaldrClient {
         Map<String,String> params = new Map<String,String>();
         params.put('page', pageNumber);
         params.put('order', 'name');
-        params.put('page_size', '10');
+        params.put('page_size', '15');
 
         if (!String.isEmpty(searchTerm)) {
             params.put('filter', 'name~=' + '%' + searchTerm + '%');
