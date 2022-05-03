@@ -88,9 +88,12 @@ public class HLGaldrClient {
     /**
      * Search for contacts
      */
-    public static List<helplightning.HLModelEnterpriseUser> searchContacts(String searchTerm) {
+    public static HLModelContacts searchContacts(String searchTerm, string pageNumber) {
         Map<String,String> params = new Map<String,String>();
+        params.put('page', pageNumber);
         params.put('order', 'name');
+        params.put('page_size', '10');
+
         if (!String.isEmpty(searchTerm)) {
             params.put('filter', 'name~=' + '%' + searchTerm + '%');
         }
@@ -100,7 +103,7 @@ public class HLGaldrClient {
         Object results = request.get(params);
 
         // deserialize
-        return HLModelEnterpriseUser.buildMany(results);
+        return HLModelContacts.build(results);
     }
 
     /**
