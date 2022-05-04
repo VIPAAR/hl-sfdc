@@ -6,15 +6,18 @@ const DELAY = 500;
 
 const columns = [
     { label: 'Avatar', fieldName: 'avatarURL', type:"image" }, 
-    { label: 'Name', fieldName: 'name' , type:'text' }, 
-    { type: "button", typeAttributes: {  
-        label: 'Call',  
-        name: 'Call',  
-        title: 'Call',  
-        disabled: false,  
-        value: 'call',  
-        iconPosition: 'right'
-    }}
+    { label: 'Name', fieldName: 'name' , type:'text', cellAttributes: { alignment: 'center' } }, 
+    { type: "button", 
+        typeAttributes: {  
+            label: 'Call',  
+            name: 'Call',  
+            title: 'Call',  
+            disabled: false,  
+            value: 'call',  
+            iconPosition: 'right'
+        },
+        cellAttributes: { alignment: 'right' }
+    }
 ]; 
 export default class HlContacts extends LightningElement {
     searchTerm = '';
