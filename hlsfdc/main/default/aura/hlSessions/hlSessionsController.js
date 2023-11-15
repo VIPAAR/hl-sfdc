@@ -44,10 +44,9 @@
 
         window.addEventListener('message', (event) => {
             const message = event.data;
+            var callId = message.callId;
+            var hlCallId = message.state;
             if (message.type === 'CALL_CONNECTED') {
-                var callId = message.callId;
-                var hlCallId = message.state;
-
                 if (callId && hlCallId) {
                     helper.updateCallId(component, callId, hlCallId);
                 }
@@ -57,6 +56,9 @@
                     setTimeout(function() {
                         callWindow.close();
                         component.set("v.callWindow", null);
+                        if (callId && hlCallId) {
+                          helper.checkForWorkbox(component, callId, hlCallId)
+                        }
                     }, 2000);
                 }
             }
@@ -69,6 +71,10 @@
         if (timer) {
             window.clearInterval(timer);
         }
+    },
+
+    closeModal: function(component, event, helper) { 
+      component.set("v.isModalOpen", false);
     },
 
     clickCall : function(component, event, helper) {
