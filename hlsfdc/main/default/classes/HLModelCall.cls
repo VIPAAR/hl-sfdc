@@ -79,7 +79,7 @@ public class HLModelCall {
 
         // Wait until the call is over...
         String reason = (String)call.get('reasonCallEnded');
-        if (String.isEmpty(reason)) {
+        if (String.isEmpty(reason) || reason == 'Canceled') {
             return null;
         }
 
