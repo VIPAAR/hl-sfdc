@@ -151,6 +151,7 @@
       if (message.type === 'CALL_CONNECTED') {
         if (callId && hlCallId) {
           helper.updateCallId(component, callId, hlCallId);
+          helper.getWorkboxFromCall(component, callId)
         }
       } else if (message.type === 'CALL_DISCONNECTED') {
         var callWindow = component.get("v.callWindow");
@@ -158,9 +159,6 @@
           setTimeout(function () {
             callWindow.close();
             component.set("v.callWindow", null);
-            if (callId && hlCallId) {
-              helper.getWorkboxFromCall(component, callId)
-            }
           }, 2000);
         }
       }
