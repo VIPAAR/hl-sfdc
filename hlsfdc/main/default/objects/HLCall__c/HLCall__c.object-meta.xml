@@ -46,7 +46,9 @@
     <deprecated>false</deprecated>
     <enableActivities>false</enableActivities>
     <enableBulkApi>true</enableBulkApi>
-    <enableChangeDataCapture>false</enableChangeDataCapture>
+    <changeDataCaptureSettings>
+        <enableChangeDataCapture>true</enableChangeDataCapture>
+    </changeDataCaptureSettings>
     <enableFeeds>false</enableFeeds>
     <enableHistory>false</enableHistory>
     <enableReports>false</enableReports>
