@@ -25,4 +25,4 @@ export default class HlContacts extends LightningElement {
         });
         this.dispatchEvent(valueChangeEvent);
     }
-} 
+}

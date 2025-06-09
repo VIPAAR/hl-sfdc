@@ -64,4 +64,4 @@ export default class HlCloseWorkbox extends LightningModal {
     clone[event.detail.index].value = selectedOptions;
     this._workboxInfo = { ...this.workboxInfo, customFields: clone };
   }
-} 
+}
