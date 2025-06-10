@@ -1,5 +1,5 @@
 <aura:component >
-    <aura:attribute name="item" type="helplightning__HLCall__c"/>
+    <aura:attribute name="item" type="HLCall__c"/>
 
     <!-- internal attributes -->
     <aura:attribute name="status" type="String"/>

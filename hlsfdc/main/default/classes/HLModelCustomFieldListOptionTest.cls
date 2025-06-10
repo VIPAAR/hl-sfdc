@@ -68,4 +68,4 @@ public class HLModelCustomFieldListOptionTest {
         System.assertEquals('Option 1', option1.label, 'First option label should be set correctly');
         System.assertEquals(1, option1.value, 'First option value should be set correctly');
     }
-} 
+}
