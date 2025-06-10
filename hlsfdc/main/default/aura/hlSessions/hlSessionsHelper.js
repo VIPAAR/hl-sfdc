@@ -167,6 +167,11 @@
                 // remove the event handler
                 helper.removeMessageHandler(component);
 
+                if (callId) {
+                    helper.getWorkboxFromCall(component, callId);
+                }
+
+
                 var callWindow = component.get("v.callWindow");
                 if (callWindow) {
                     setTimeout(function () {
