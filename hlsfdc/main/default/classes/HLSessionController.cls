@@ -297,6 +297,14 @@ public with sharing class HLSessionController {
             return getCallsForRecord(sObjectName, recordId);
         } catch (helplightning.HLConfigurationException e) {
             throw new AuraHandledException('The Help Lightning component must be configured first.');
+        } catch (DmlException e) {
+            // Handle DML exceptions (e.g., validation rules, field constraints)
+            System.debug('updateCalls Insert failed: ' + e.getMessage());
+            return null;
+        } catch (Exception e) {
+            // Handle other unexpected errors
+            System.debug('updateCalls Unexpected error: ' + e.getMessage());
+            return null;
         }
     }
 
@@ -719,22 +727,19 @@ public with sharing class HLSessionController {
               conVer.PathOnClient = a.fileName + '.jpg';
               conVer.Title = a.fileName; // Display name of the files
               conVer.VersionData = bd;
+              conVer.FirstPublishLocationId = recordId;
               toSave.add(conVer);
             }
         }
 
-        for (ContentVersion a: toSave) {
-            insert a;
-            Id conDoc = [SELECT ContentDocumentId FROM ContentVersion WHERE Id =:a.Id].ContentDocumentId;
-            ContentDocumentLink conDocLink = New ContentDocumentLink();
-            conDocLink.LinkedEntityId = recordId;
-            conDocLink.ContentDocumentId = conDoc;
-            // Specify the share type
-            // V = Viewer permission. The user can explicitly view but not edit the shared file.
-            // C = Collaborator permission. The user can explicitly view and edit the shared file.
-            // I = Inferred permission. The user’s permission is determined by the related record.
-            conDocLink.shareType = 'I';
-            insert conDocLink;
+        try {
+            insert toSave;
+        } catch (DmlException e) {
+            // Handle DML exceptions (e.g., validation rules, field constraints)
+            System.debug('saveAttachment Insert failed: ' + e.getMessage());
+        } catch (Exception e) {
+            // Handle other unexpected errors
+            System.debug('saveAttachment Unexpected error: ' + e.getMessage());
         }
     }
 }

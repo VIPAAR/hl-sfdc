@@ -1,11 +1,11 @@
-<aura:component controller="helplightning.HLSessionController" implements="flexipage:availableForRecordHome,force:hasSObjectName,force:hasRecordId,force:appHostable" access="global">
+<aura:component controller="HLSessionController" implements="flexipage:availableForRecordHome,force:hasSObjectName,force:hasRecordId,force:appHostable" access="global">
 
     <aura:attribute name="hasErrors" type="Boolean" default="false" />
     <aura:attribute name="errorMessage" type="String" default="" />
     <!-- due to the way salesforce renders child components, we need to hide tabs on parent load -->
     <aura:attribute name="showTabs" type="Boolean" default="false"/>
     <aura:attribute name="contact" type="Contact"/>
-    <aura:attribute name="calls" type="helplightning__HLCall__c[]"/>
+    <aura:attribute name="calls" type="HLCall__c[]"/>
     <aura:attribute name="contactIsHLUser" type="Boolean" default="false"/>
     <aura:attribute name="recordId" type="String" default=""/>
     <aura:attribute name="sObjectName" type="String" default=""/>
@@ -36,7 +36,7 @@
     <article class="slds-card">
         <!-- render our tabs-->
         <aura:if isTrue="{!v.showTabs == true}">
-            <helplightning:hlTabs recordId="{!v.recordId}"
+            <c:hlTabs recordId="{!v.recordId}"
                                 sObjectName="{!v.sObjectName}"
                                 showButtons="{!v.hasErrors == false}"
                                 defaultEmail="{!v.contact.Email || ''}"
@@ -52,7 +52,7 @@
 
                 <aura:if isTrue="{!v.calls.length > 0}">
                     <!-- Activity Timeline -->
-                    <helplightning:hlRecentEventTimeline calls="{!v.calls}" />
+                    <c:hlRecentEventTimeline calls="{!v.calls}" />
                 </aura:if>
                 <aura:set attribute="else">
                     <!-- unsupported component -->

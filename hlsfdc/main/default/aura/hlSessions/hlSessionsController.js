@@ -153,8 +153,9 @@
             var state = response.getState();
             if (component.isValid() && state == "SUCCESS") {
                 var r = response.getReturnValue();
-                var link = r?.link;
-                var auth = r?.auth;
+
+                var link = r.link;
+                var auth = r.auth;
 
                 // copy the mhs link to the clipboard
                 navigator.clipboard.writeText(link.longLink);

@@ -13,9 +13,9 @@
     <aura:attribute name="sObjectName" type="String" default="" />
 
     <!-- register our callback event to use as callbacks for presses on buttons -->
-    <aura:registerEvent name="onCallClick" type="helplightning:hlCallContactEvent" />
-    <aura:registerEvent name="onInviteClick" type="helplightning:hlInviteContactEvent" />
-    <aura:registerEvent name="onCopyLinkClick" type="helplightning:hlCopyLinkEvent" />
+    <aura:registerEvent name="onCallClick" type="c:hlCallContactEvent" />
+    <aura:registerEvent name="onInviteClick" type="c:hlInviteContactEvent" />
+    <aura:registerEvent name="onCopyLinkClick" type="c:hlCopyLinkEvent" />
 
     <aura:handler name="init" action="{!c.doInit}" value="{!this}" />
 

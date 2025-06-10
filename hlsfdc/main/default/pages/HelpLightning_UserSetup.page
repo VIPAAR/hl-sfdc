@@ -1,4 +1,4 @@
-<apex:page controller="helplightning.HLUserConfigurationController">
+<apex:page controller="HLUserConfigurationController">
   <apex:sectionHeader title="Configure the Help Lightning Component" />
 
   <apex:pageMessages />
@@ -14,7 +14,7 @@
         <apex:inputText value="{!config['workspaceId']}" />
         
       </apex:pageBlockSection>
-      <apex:pageBlockButtons>
+      <apex:pageBlockButtons >
         <apex:commandButton action="{!save}" value="Save" />
       </apex:pageBlockButtons>
     </apex:pageBlock>
