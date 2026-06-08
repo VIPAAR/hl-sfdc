@@ -26,7 +26,7 @@
         <apex:outputText value="Create Calendar Events from Calls" />
         <apex:inputCheckbox value="{!createEvents}" />
 
-        <apex:outputText value="Save Screenshots from Calls" />
+        <apex:outputText value="Save images from help threads" />
         <apex:inputCheckbox value="{!saveAttachments}" />
         
       </apex:pageBlockSection>

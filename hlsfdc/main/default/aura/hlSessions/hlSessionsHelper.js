@@ -195,6 +195,10 @@
                 console.log("HL::messageHandler - CALL_DISCONNECTED received");
                 // Keep popup open and skip Salesforce call-end modal flow.
                 // Help Thread close/custom-field handling now lives in the HL popup.
+            } else if (message.type === 'CHAT_PHOTO_ADDED') {
+                helper.saveChatPhotos(component, helper, [message]);
+            } else if (message.type === 'CHAT_PHOTOS_SYNC') {
+                helper.saveChatPhotos(component, helper, message.photos || []);
             } else {
                 console.log("HL::messageHandler - unrecognized message type:", message.type);
             }
@@ -252,6 +256,49 @@
                 helper.beginPolling(component, helper);
             } else {
                 console.error("HL::createCallRecord saveCall failed:", state, response.getError());
+            }
+        });
+
+        $A.enqueueAction(action);
+    },
+
+    /**
+     * Save Help Thread images relayed from the Help Lightning popup to the linked
+     * record. Accepts an array of CHAT_PHOTO_ADDED messages or CHAT_PHOTOS_SYNC
+     * photo entries; both expose fileName/mimeType/url. Apex de-dupes by file
+     * title, so resends are harmless.
+     */
+    saveChatPhotos : function(component, helper, photos) {
+        if (!photos || photos.length === 0) {
+            return;
+        }
+
+        var recordId = component.get("v.recordId");
+        if (!recordId) {
+            console.error("HL::saveChatPhotos - no recordId, skipping");
+            return;
+        }
+
+        // Normalize and drop entries missing a url or fileName
+        var cleaned = [];
+        for (var i = 0; i < photos.length; i++) {
+            var p = photos[i];
+            if (p && p.url && p.fileName) {
+                cleaned.push({ fileName: p.fileName, mimeType: p.mimeType, url: p.url });
+            }
+        }
+        if (cleaned.length === 0) {
+            return;
+        }
+
+        var action = component.get("c.saveChatPhotos");
+        action.setParams({ "recordId": recordId, "photosJson": JSON.stringify(cleaned) });
+        action.setCallback(this, function(response) {
+            var state = response.getState();
+            if (component.isValid() && state === "SUCCESS") {
+                console.log("HL::saveChatPhotos - relayed", cleaned.length, "image(s) for", recordId);
+            } else if (component.isValid() && state === "ERROR") {
+                console.error("HL::saveChatPhotos failed:", response.getError());
             }
         });
 

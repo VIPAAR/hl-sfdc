@@ -402,20 +402,6 @@ public class HLGaldrClient {
     }
 
     /**
-     * Get attachments for a call
-     */
-    public static List<helplightning.HLModelAttachment> getAttachments(String token, String callId) {
-        helplightning.HLEnvironment environment = new helplightning.HLEnvironment(helplightning.HLConfiguration.getEnvironment());
-        helplightning.HLRequest request = new helplightning.HLRequest(environment,
-                                                                      token,
-                                                                      '/v1r1/enterprise/calls/' + callId + '/attachments');
-        Object results = request.get();
-
-        // deserialize
-        return HLModelAttachment.buildMany(results);
-    }
-
-    /**
      * Resend invite to a guest in a workbox.
      * Requires a workbox token and the guest's UUID.
      */
