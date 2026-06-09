@@ -9,6 +9,8 @@
  * Retained only to provide coverage for the deprecated HLModelAttachment
  *  class, which cannot be removed from the released 2GP managed package.
  *  Do not extend; this will be removed once HLModelAttachment is deleted.
+ *
+ *  NOTE: see SFDC-127 for tracking eventual removal from the package.
  */
 
 @isTest

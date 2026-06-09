@@ -12,6 +12,8 @@
  *  components. It is not marked with the @deprecated annotation because that
  *  is only valid on global (managed) identifiers, and this class is public.
  *  Do not use it for new development.
+ *
+ *  NOTE: see SFDC-127 for tracking eventual removal from the package.
  */
 
 public class HLModelAttachment {
