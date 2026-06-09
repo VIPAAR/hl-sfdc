@@ -2077,13 +2077,21 @@ private class HLSessionControllerTest {
         }
         Test.stopTest();
 
-        List<ContentVersion> contentVersions = [SELECT Id, Title FROM ContentVersion];
+        // The file is linked to the Case via ContentDocumentLink. Query the
+        //  ContentVersion through that link so we don't depend on the saving
+        //  user's private library being visible to the test-running context.
+        List<ContentDocumentLink> links =
+            [SELECT ContentDocumentId FROM ContentDocumentLink WHERE LinkedEntityId = :caseId];
+        System.assertEquals(1, links.size());
+
+        Set<Id> docIds = new Set<Id>();
+        for (ContentDocumentLink link : links) {
+            docIds.add(link.ContentDocumentId);
+        }
+        List<ContentVersion> contentVersions =
+            [SELECT Id, Title FROM ContentVersion WHERE ContentDocumentId IN :docIds AND IsLatest = true];
         System.assertEquals(1, contentVersions.size());
         System.assertEquals('chat_photo_1.png', contentVersions.get(0).Title);
-
-        List<ContentDocumentLink> links =
-            [SELECT Id FROM ContentDocumentLink WHERE LinkedEntityId = :caseId];
-        System.assertEquals(1, links.size());
     }
 
     /**
