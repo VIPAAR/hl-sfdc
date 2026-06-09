@@ -1,3 +1,6 @@
+2026-06-09  Micah Legg <micah.legg@helplightning.com>
+	* SFDC-127 - Restore removed classes so that the package can build
+
 3.24
 ==========
 2026-06-09  Micah Legg <micah.legg@helplightning.com>
