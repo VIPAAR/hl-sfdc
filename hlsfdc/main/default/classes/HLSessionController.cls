@@ -274,18 +274,6 @@ public with sharing class HLSessionController {
                                           matchedCall.helplightning__End_Time__c,
                                           matchedCall.helplightning__HLCall_Id__c);
                             }
-
-                            if (HLConfiguration.getSaveAttachments() && matchedCall.helplightning__Complete__c) {
-                                String callId = matchedCall.helplightning__HLCall_Id__c;
-
-                                if (callId == null || callId.equals('')) {
-                                    // No matching call ID
-                                } else {
-                                    // Save call attachments.
-                                    // Need to wrap this in a future call method to prevent race conditions and DML errors
-                                    saveAttachment(callId, recordId);
-                                }
-                            }
                         } else {
                             System.debug('Insufficient Access for updatting helplightning__HLCall__c');
                         }
@@ -1276,60 +1264,145 @@ public with sharing class HLSessionController {
         upsert e;
     }
 
-    @future(callout = true)
-    private static void saveAttachment(String callId, String recordId) {
-        String token = HLTokenHelper.getToken();
-        List<HLModelAttachment> attachments = helplightning.HLGaldrClient.getAttachments(token, callId);
+    /**
+     * Wrapper for a single Help Thread image relayed from the Help Lightning popup.
+     */
+    public class ChatPhoto {
+        public String fileName;
+        public String mimeType;
+        public String url;
+    }
 
+    /**
+     * Save Help Thread images (chat photos and in-call screenshots) relayed from
+     * the Help Lightning popup to the linked Salesforce record. Images already on
+     * the record (matched by file Title) are skipped, so resends are harmless.
+     *
+     * @param recordId   The Case / Work Order Id to link the files to.
+     * @param photosJson JSON array of { fileName, mimeType, url } entries; each
+     *                   url is a signed media URL the org can download directly.
+     */
+    @AuraEnabled
+    public static void saveChatPhotos(String recordId, String photosJson) {
+        if (!HLConfiguration.getSaveAttachments()) {
+            return;
+        }
+        if (String.isBlank(recordId) || String.isBlank(photosJson)) {
+            return;
+        }
+
+        List<ChatPhoto> photos =
+            (List<ChatPhoto>) JSON.deserialize(photosJson, List<ChatPhoto>.class);
+        if (photos == null || photos.isEmpty()) {
+            return;
+        }
+
+        Set<String> existingTitles = getExistingFileTitles(recordId);
+
+        // Query before callouts; de-dup against existing files and within the batch.
+        Set<String> seen = new Set<String>();
         List<ContentVersion> toSave = new List<ContentVersion>();
-
-        // We can't save attachments while making call-outs
-        for (HLModelAttachment a: attachments) {
-            // Only save screencaps for now
-            // In order to avoid duplicates, we need to check if the file already exists in the toSave list
-            // This code might need to be removed when we change how thumbnails are saved
-            Boolean fileExists = false;
-
-            // Since apex doesn't have a contains method for lists, we have to do this ugly mess.
-            for (ContentVersion c: toSave) {
-                if (c.Title == a.fileName) {
-                    fileExists = true;
-                    break;
-                }
+        for (ChatPhoto p : photos) {
+            if (p == null || String.isBlank(p.url) || String.isBlank(p.fileName)) {
+                continue;
             }
+            if (existingTitles.contains(p.fileName) || seen.contains(p.fileName)) {
+                continue;
+            }
+            seen.add(p.fileName);
 
-            if (a.type == 'incall' && (a.mimeType == 'image/jpeg' || a.mimeType == 'image/png') && !fileExists) {
-              // Get the file from signed URL
-              Http h = new Http();
-              HttpRequest req = new HttpRequest();
-              req.setEndpoint(a.signedUrl);
-              req.setMethod('GET');
-              HttpResponse res = h.send(req);
-              Blob bd = res.getBodyAsBlob();
-              // Determine file extension based on mime type
-              String fileExt = a.mimeType == 'image/png' ? '.png' : '.jpg';
-              // Create a new ContentVersion object
-              ContentVersion conVer = new ContentVersion();
-              conVer.ContentLocation = 'S'; // to use S specify this document is in Salesforce, to use E for external files
-              conVer.PathOnClient = a.fileName + fileExt;
-              conVer.Title = a.fileName; // Display name of the files
-              conVer.VersionData = bd;
-              toSave.add(conVer);
+            Blob data = httpGetBlob(p.url);
+            if (data != null) {
+                toSave.add(buildContentVersion(p.fileName, data));
             }
         }
 
-        for (ContentVersion a: toSave) {
-            insert a;
-            Id conDoc = [SELECT ContentDocumentId FROM ContentVersion WHERE Id =:a.Id].ContentDocumentId;
-            ContentDocumentLink conDocLink = New ContentDocumentLink();
-            conDocLink.LinkedEntityId = recordId;
-            conDocLink.ContentDocumentId = conDoc;
-            // Specify the share type
-            // V = Viewer permission. The user can explicitly view but not edit the shared file.
-            // C = Collaborator permission. The user can explicitly view and edit the shared file.
-            // I = Inferred permission. The user’s permission is determined by the related record.
-            conDocLink.shareType = 'I';
-            insert conDocLink;
+        saveImageToRecord(recordId, toSave);
+    }
+
+    /**
+     * Titles of files already linked to the record, used to avoid duplicates.
+     */
+    private static Set<String> getExistingFileTitles(String recordId) {
+        Set<String> titles = new Set<String>();
+        Set<Id> docIds = new Set<Id>();
+        for (ContentDocumentLink link : [SELECT ContentDocumentId
+                                         FROM ContentDocumentLink
+                                         WHERE LinkedEntityId = :recordId]) {
+            docIds.add(link.ContentDocumentId);
+        }
+        if (!docIds.isEmpty()) {
+            for (ContentVersion cv : [SELECT Title
+                                      FROM ContentVersion
+                                      WHERE ContentDocumentId IN :docIds
+                                      AND IsLatest = true]) {
+                titles.add(cv.Title);
+            }
+        }
+        return titles;
+    }
+
+    /**
+     * Download a signed media URL and return its bytes (null on failure).
+     */
+    private static Blob httpGetBlob(String url) {
+        try {
+            Http h = new Http();
+            HttpRequest req = new HttpRequest();
+            req.setEndpoint(url);
+            req.setMethod('GET');
+            HttpResponse res = h.send(req);
+            if (res.getStatusCode() >= 200 && res.getStatusCode() < 300) {
+                return res.getBodyAsBlob();
+            }
+            System.debug('HL::httpGetBlob non-2xx response: ' + res.getStatusCode());
+            return null;
+        } catch (Exception e) {
+            System.debug('HL::httpGetBlob failed: ' + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Build a ContentVersion for an image blob.
+     */
+    private static ContentVersion buildContentVersion(String fileName, Blob data) {
+        ContentVersion cv = new ContentVersion();
+        cv.ContentLocation = 'S';
+        cv.PathOnClient = fileName;
+        cv.Title = fileName;
+        cv.VersionData = data;
+        return cv;
+    }
+
+    /**
+     * Insert the given ContentVersions and link them to the record as Files.
+     */
+    private static void saveImageToRecord(String recordId, List<ContentVersion> toSave) {
+        if (toSave == null || toSave.isEmpty()) {
+            return;
+        }
+
+        insert toSave;
+
+        Set<Id> versionIds = new Set<Id>();
+        for (ContentVersion cv : toSave) {
+            versionIds.add(cv.Id);
+        }
+
+        List<ContentDocumentLink> links = new List<ContentDocumentLink>();
+        for (ContentVersion cv : [SELECT ContentDocumentId
+                                  FROM ContentVersion
+                                  WHERE Id IN :versionIds]) {
+            ContentDocumentLink link = new ContentDocumentLink();
+            link.LinkedEntityId = recordId;
+            link.ContentDocumentId = cv.ContentDocumentId;
+            link.ShareType = 'I';
+            links.add(link);
+        }
+
+        if (!links.isEmpty()) {
+            insert links;
         }
     }
 }

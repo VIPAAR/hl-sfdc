@@ -131,189 +131,6 @@ private class HLSessionControllerTest {
         }
     }
     /**
-     * Mocker for the testUpdateCallsCase
-     */
-    class UpdateCallsCaseMockerWithAttachment implements HttpCalloutMock {
-        public HTTPResponse respond(HTTPRequest req) {
-            URL endpoint = new URL(req.getEndpoint());
-            System.debug('ENDPOINT: ' + endpoint.getPath());
-
-            HttpResponse response = new HttpResponse();
-            response.setHeader('Content-Type', 'application/json');
-
-            if (req.getMethod() == 'GET' && endpoint.getPath().startsWith('/api/v1/enterprise/sessions/')) {
-                // return some help lightning calls.
-                List<String> parts = endpoint.getPath().split('/');
-                String sessionId = parts.get(parts.size()-1);
-
-                List<Object> calls = new List<Object>();
-                if (sessionId == 'aabbccdd') {
-                    Map<String,Object> call = new Map<String,Object>{
-                            'session_id' => 'aabbccdd',
-                            'call_id' => 'abcd',
-                            'dialer' => new Map<String,Object>{
-                                    'id' => '432',
-                                    'name' => 'support',
-                                    'email' => 'support@helplightning.com'
-                                    },
-                            'receiver' => new Map<String,Object>{
-                                    'id' => '22',
-                                    'name' => 'contact1',
-                                    'email' => 'contact1@helplightning.com'
-                                    },
-                            'start_time' => '2017-06-28T11:30:02-05',
-                            'end_time' => '2017-06-28T11:40:02-05',
-                            'complete' => true,
-                            'successful' => true,
-                            'duration' => 600
-                            };
-                    calls.add(call);
-                } else if (sessionId == 'wwxxyyzz') {
-                    Map<String,Object> call = new Map<String,Object>{
-                            'session_id' => 'wwxxyyzz',
-                            'call_id' => 'wxyz',
-                            'dialer' => new Map<String,Object>{
-                                    'id' => '432',
-                                    'name' => 'support',
-                                    'email' => 'support@helplightning.com'
-                                    },
-                            'receiver' => new Map<String,Object>{
-                                    'id' => '22',
-                                    'name' => 'contact1',
-                                    'email' => 'contact1@helplightning.com'
-                                    },
-                            'start_time' => '2017-06-28T11:36:05-05',
-                            'end_time' => '2017-06-28T11:42:05-05',
-                            'complete' => true,
-                            'successful' => false,
-                            'duration' => 360
-                            };
-                    calls.add(call);
-                }
-
-                // return this as a serialized list of maps.
-                response.setBody(JSON.serialize(calls));
-                response.setStatusCode(200);
-            } else if (req.getMethod() == 'GET' && endpoint.getPath().startsWith('/api/v1/enterprise/calls/')) {
-                // return some help lightning calls.
-                List<String> parts = endpoint.getPath().split('/');
-                String callId = parts.get(parts.size()-1);
-
-                Map<String,Object> call = null;
-                if (callId == 'abcd') {
-                    call = new Map<String,Object>{
-                            'call' => new Map<String,Object>{
-                                    'session' => 'abcd',
-                                    'timeCallStarted' => '1498667402.000',
-                                    'timeCallEnded' => '1498668002.000',
-                                    'reasonCallEnded' => 'Call Ended',
-                                    'callDuration' => 600,
-                                    'dialer' => new Map<String,Object>{
-                                            'id' => '432',
-                                            'name' => 'support',
-                                            'email' => 'support@helplightning.com'
-                                        },
-                                    'receiver' => new Map<String,Object>{
-                                            'id' => '22',
-                                             'name' => 'contact1',
-                                             'email' => 'contact1@helplightning.com'
-                                             }
-                                }
-                        };
-                } else if (callId == 'wxyz') {
-                    call = new Map<String,Object>{
-                            'call' => new Map<String,Object>{
-                                    'session' => 'wxyz',
-                                    'timeCallStarted' => '1498667765.000',
-                                    'timeCallEnded' => '1498668125.000',
-                                    'reasonCallEnded' => 'Timed out',
-                                    'callDuration' => 360,
-                                    'dialer' => new Map<String,Object>{
-                                            'id' => '432',
-                                            'name' => 'support',
-                                            'email' => 'support@helplightning.com'
-                                        },
-                                    'receiver' => new Map<String,Object>{
-                                            'id' => '22',
-                                             'name' => 'contact1',
-                                             'email' => 'contact1@helplightning.com'
-                                             }
-                                }
-                        };
-                }
-                response.setBody(JSON.serialize(call));
-                response.setStatusCode(200);
-            } else if (req.getMethod() == 'GET' && endpoint.getPath().startsWith('/api/v1r1/enterprise/calls/wxyz/attachments')) {
-                // return some attachments.
-                List<Object> attachments = new List<Object>();
-                Map<String,Object> a1 = new Map<String,Object>{
-                    'id' => 1,
-                    'creator' => new Map<String,Object>{
-                        'name' => 'Joe',
-                        'id' => 1234,
-                        'avatar' => new Map<String,Object>{
-                            'thumb' => null,
-                            'original' => null
-                        }
-                    },
-                    'name' => 'screen_cap1.jpg',
-                    'signed_url' => 'https://helplightning.com/attachments/1/attachment.jpg',
-                    'thumbnail' => 'https://helplightning.com/attachments/1/thumbnail.jpg',
-                    'mime_type' => 'image/jpeg',
-                    'timestamp' => 1639168218,
-                    'type' => 'incall',
-                    'deleted' => false,
-                    'status' => '',
-                    'progress' => 0,
-                    'path' => 's3://helplightning-bucket/attachment/1.jpg'
-                };
-                Map<String,Object> a2 = new Map<String,Object>{
-                    'id' => 2,
-                    'creator' => new Map<String,Object>{
-                        'name' => 'Joe',
-                        'id' => 1234,
-                        'avatar' => new Map<String,Object>{
-                            'thumb' => null,
-                            'original' => null
-                        }
-                    },
-                    'name' => 'recording.mp4',
-                    'signed_url' => 'https://helplightning.com/attachments/2/recording.mp4',
-                    'thumbnail' => '',
-                    'mime_type' => 'video/mp4',
-                    'timestamp' => 1639168222,
-                    'type' => 'recording',
-                    'deleted' => false,
-                    'status' => 'finished',
-                    'progress' => 100,
-                    'path' => 's3://helplightning-bucket/attachment/2.mp4'
-                };
-
-                attachments.add(a1);
-                attachments.add(a2);
-
-                response.setHeader('Content-Type', 'application/json');
-                response.setBody(JSON.serialize(attachments));
-                response.setStatusCode(200);
-            } else if (req.getMethod() == 'GET' && endpoint.getPath().startsWith('/attachments/1/attachment.jpg')) {
-                // return a fake binary image
-                String base64Img = '/9j/4AAQSkZJRgABAQEBLAEsAAD//gATQ3JlYXRlZCB3aXRoIEdJTVD/4gKwSUNDX1BST0ZJTEUAAQEAAAKgbGNtcwQwAABtbnRyUkdCIFhZWiAH5QAMABUAFAA2AC1hY3NwQVBQTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9tYAAQAAAADTLWxjbXMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA1kZXNjAAABIAAAAEBjcHJ0AAABYAAAADZ3dHB0AAABmAAAABRjaGFkAAABrAAAACxyWFlaAAAB2AAAABRiWFlaAAAB7AAAABRnWFlaAAACAAAAABRyVFJDAAACFAAAACBnVFJDAAACFAAAACBiVFJDAAACFAAAACBjaHJtAAACNAAAACRkbW5kAAACWAAAACRkbWRkAAACfAAAACRtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACQAAAAcAEcASQBNAFAAIABiAHUAaQBsAHQALQBpAG4AIABzAFIARwBCbWx1YwAAAAAAAAABAAAADGVuVVMAAAAaAAAAHABQAHUAYgBsAGkAYwAgAEQAbwBtAGEAaQBuAABYWVogAAAAAAAA9tYAAQAAAADTLXNmMzIAAAAAAAEMQgAABd7///MlAAAHkwAA/ZD///uh///9ogAAA9wAAMBuWFlaIAAAAAAAAG+gAAA49QAAA5BYWVogAAAAAAAAJJ8AAA+EAAC2xFhZWiAAAAAAAABilwAAt4cAABjZcGFyYQAAAAAAAwAAAAJmZgAA8qcAAA1ZAAAT0AAACltjaHJtAAAAAAADAAAAAKPXAABUfAAATM0AAJmaAAAmZwAAD1xtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAEcASQBNAFBtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEL/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wgARCAAEAAQDAREAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAABP/EABQBAQAAAAAAAAAAAAAAAAAAAAf/2gAMAwEAAhADEAAAAWHhz//EABcQAAMBAAAAAAAAAAAAAAAAAAIEBQb/2gAIAQEAAQUCy1ZoIX//xAAcEQAABgMAAAAAAAAAAAAAAAAAAQIDBVEGQmH/2gAIAQMBAT8BncqmFSLhm9WqaLg//8QAHhEAAQMEAwAAAAAAAAAAAAAAAQIDBAAFBkERElL/2gAIAQIBAT8BzmzwYWQyWGG+Ejrs+EnZr//EABsQAQAABwAAAAAAAAAAAAAAAAEAAwQhIkJS/9oACAEBAAY/AqYJtstTpj//xAAYEAACAwAAAAAAAAAAAAAAAAAAARExwf/aAAgBAQABPyGC8lcI/9oADAMBAAIAAwAAABA//8QAFREBAQAAAAAAAAAAAAAAAAAAACH/2gAIAQMBAT8QrJW//8QAGBEBAAMBAAAAAAAAAAAAAAAAAREhMQD/2gAIAQIBAT8QyDeSxLrR1W3v/8QAFxAAAwEAAAAAAAAAAAAAAAAAABFBMf/aAAgBAQABPxDATDNaf//Z';
-
-                // decode the base64 into binary and return as an octet-stream
-                Blob decoded = Encodingutil.base64Decode(base64Img);
-
-                response.setHeader('Content-Type', 'application/octet-stream');
-                response.setBodyAsBlob(decoded);
-                response.setStatusCode(200);
-            } else {
-                // error
-                response.setStatusCode(500);
-            }
-
-            return response;
-        }
-    }
-    /**
      * Mocker for the testUpdateCallsWorkOrder
      */
     class UpdateCallsWorkOrderMocker implements HttpCalloutMock {
@@ -791,76 +608,22 @@ private class HLSessionControllerTest {
     }
 
     /**
-     * Mocker for the saveAttachments case
+     * Mocker that returns a small image blob for chat-photo download callouts.
+     * Responds to any GET (the signed media URL) with a valid JPEG body.
      */
-    class AttachmentMocker implements HttpCalloutMock {
+    class ChatPhotoImageMocker implements HttpCalloutMock {
         public HTTPResponse respond(HTTPRequest req) {
-            URL endpoint = new URL(req.getEndpoint());
-
             HttpResponse response = new HttpResponse();
 
-            if (req.getMethod() == 'GET' && endpoint.getPath().startsWith('/api/v1r1/enterprise/calls/call-1234/attachments')) {
-                // return some attachments.
-                List<Object> attachments = new List<Object>();
-                Map<String,Object> a1 = new Map<String,Object>{
-                    'id' => 1,
-                    'creator' => new Map<String,Object>{
-                        'name' => 'Joe',
-                        'id' => 1234,
-                        'avatar' => new Map<String,Object>{
-                            'thumb' => null,
-                            'original' => null
-                        }
-                    },
-                    'name' => 'screen_cap1.jpg',
-                    'signed_url' => 'https://helplightning.com/attachments/1/attachment.jpg',
-                    'thumbnail' => 'https://helplightning.com/attachments/1/thumbnail.jpg',
-                    'mime_type' => 'image/jpeg',
-                    'timestamp' => 1639168218,
-                    'type' => 'incall',
-                    'deleted' => false,
-                    'status' => '',
-                    'progress' => 0,
-                    'path' => 's3://helplightning-bucket/attachment/1.jpg'
-                };
-                Map<String,Object> a2 = new Map<String,Object>{
-                    'id' => 2,
-                    'creator' => new Map<String,Object>{
-                        'name' => 'Joe',
-                        'id' => 1234,
-                        'avatar' => new Map<String,Object>{
-                            'thumb' => null,
-                            'original' => null
-                        }
-                    },
-                    'name' => 'recording.mp4',
-                    'signed_url' => 'https://helplightning.com/attachments/2/recording.mp4',
-                    'thumbnail' => '',
-                    'mime_type' => 'video/mp4',
-                    'timestamp' => 1639168222,
-                    'type' => 'recording',
-                    'deleted' => false,
-                    'status' => 'finished',
-                    'progress' => 100,
-                    'path' => 's3://helplightning-bucket/attachment/2.mp4'
-                };
-
-                attachments.add(a1);
-                attachments.add(a2);
-
-                response.setHeader('Content-Type', 'application/json');
-                response.setBody(JSON.serialize(attachments));
-                response.setStatusCode(200);
-            } else if (req.getMethod() == 'GET' && endpoint.getPath().startsWith('/attachments/1/attachment.jpg')) {
-                // return a fake binary image
+            if (req.getMethod() == 'GET') {
+                // a tiny valid base64 JPEG used as the downloaded image body
                 String base64Img = '/9j/4AAQSkZJRgABAQEBLAEsAAD//gATQ3JlYXRlZCB3aXRoIEdJTVD/4gKwSUNDX1BST0ZJTEUAAQEAAAKgbGNtcwQwAABtbnRyUkdCIFhZWiAH5QAMABUAFAA2AC1hY3NwQVBQTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9tYAAQAAAADTLWxjbXMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA1kZXNjAAABIAAAAEBjcHJ0AAABYAAAADZ3dHB0AAABmAAAABRjaGFkAAABrAAAACxyWFlaAAAB2AAAABRiWFlaAAAB7AAAABRnWFlaAAACAAAAABRyVFJDAAACFAAAACBnVFJDAAACFAAAACBiVFJDAAACFAAAACBjaHJtAAACNAAAACRkbW5kAAACWAAAACRkbWRkAAACfAAAACRtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACQAAAAcAEcASQBNAFAAIABiAHUAaQBsAHQALQBpAG4AIABzAFIARwBCbWx1YwAAAAAAAAABAAAADGVuVVMAAAAaAAAAHABQAHUAYgBsAGkAYwAgAEQAbwBtAGEAaQBuAABYWVogAAAAAAAA9tYAAQAAAADTLXNmMzIAAAAAAAEMQgAABd7///MlAAAHkwAA/ZD///uh///9ogAAA9wAAMBuWFlaIAAAAAAAAG+gAAA49QAAA5BYWVogAAAAAAAAJJ8AAA+EAAC2xFhZWiAAAAAAAABilwAAt4cAABjZcGFyYQAAAAAAAwAAAAJmZgAA8qcAAA1ZAAAT0AAACltjaHJtAAAAAAADAAAAAKPXAABUfAAATM0AAJmaAAAmZwAAD1xtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAEcASQBNAFBtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEL/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wgARCAAEAAQDAREAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAABP/EABQBAQAAAAAAAAAAAAAAAAAAAAf/2gAMAwEAAhADEAAAAWHhz//EABcQAAMBAAAAAAAAAAAAAAAAAAIEBQb/2gAIAQEAAQUCy1ZoIX//xAAcEQAABgMAAAAAAAAAAAAAAAAAAQIDBVEGQmH/2gAIAQMBAT8BncqmFSLhm9WqaLg//8QAHhEAAQMEAwAAAAAAAAAAAAAAAQIDBAAFBkERElL/2gAIAQIBAT8BzmzwYWQyWGG+Ejrs+EnZr//EABsQAQAABwAAAAAAAAAAAAAAAAEAAwQhIkJS/9oACAEBAAY/AqYJtstTpj//xAAYEAACAwAAAAAAAAAAAAAAAAAAARExwf/aAAgBAQABPyGC8lcI/9oADAMBAAIAAwAAABA//8QAFREBAQAAAAAAAAAAAAAAAAAAACH/2gAIAQMBAT8QrJW//8QAGBEBAAMBAAAAAAAAAAAAAAAAAREhMQD/2gAIAQIBAT8QyDeSxLrR1W3v/8QAFxAAAwEAAAAAAAAAAAAAAAAAABFBMf/aAAgBAQABPxDATDNaf//Z';
 
-                // decode the base64 into binary and return as an octet-stream
-                Blob decoded = Encodingutil.base64Decode(base64Img);
-
                 response.setHeader('Content-Type', 'application/octet-stream');
-                response.setBodyAsBlob(decoded);
+                response.setBodyAsBlob(EncodingUtil.base64Decode(base64Img));
                 response.setStatusCode(200);
+            } else {
+                response.setStatusCode(500);
             }
 
             return response;
@@ -2288,61 +2051,144 @@ private class HLSessionControllerTest {
     }
 
     /**
-     * Test updating the calls for a case
-     *  where there are attachments
+     * Test saving Help Thread chat photos to a Case record.
      */
     @isTest
-    static void testUpdateCallsCaseWithAttachments() {
-        // Have config insert events
+    static void testSaveChatPhotos() {
         helplightning__Help_Lightning_Config__c config = helplightning__Help_Lightning_Config__c.getOrgDefaults();
-        config.helplightning__Create_Events__c = true;
         config.helplightning__Save_Attachments__c = true;
         upsert config;
 
         Id caseId = [SELECT Id from Case WHERE Subject = 'Case 1' LIMIT 1].Id;
-
         User u = [SELECT Id from User WHERE UserName='test-user@helplightning.com' LIMIT 1];
 
-        // We are not allowed to do an DML operations
-        //  before doing a call-out. But, we need test data
-        //  to be inserted first.
-        // This start/stopTest hack works around this.
-        // https://salesforce.stackexchange.com/questions/46438/unit-test-you-have-uncommitted-work-pending-please-commit-or-rollback-before-c
-        Test.startTest();
-
-        // set up the mock
-        Test.setMock(HttpCalloutMock.class, new UpdateCallsCaseMockerWithAttachment());
-
-        System.RunAs(u) {
-            List<helplightning__HLCall__c> calls = helplightning.HLSessionController.updateCalls('Case', caseId);
-
-            // validate we have 2 calls
-            System.assertEquals(2, calls.size());
-
-            // validate that call id 'wxyz'
-            //  has been set to complete.
-            helplightning__HLCall__c wxyz = null;
-            for (helplightning__HLCall__c c: calls) {
-                if (c.helplightning__HLCall_Id__c == 'wxyz')
-                    wxyz = c;
+        String photosJson = JSON.serialize(new List<Map<String,Object>>{
+            new Map<String,Object>{
+                'fileName' => 'chat_photo_1.png',
+                'mimeType' => 'image/png',
+                'url' => 'https://fieldbit-assets.proda.helplightning.net/org/1/chat_photo_1.png?signed'
             }
+        });
 
-            System.assertNotEquals(null, wxyz);
-            System.assertEquals(true, wxyz.helplightning__Complete__c);
-            System.assertEquals(360, wxyz.helplightning__Duration__c);
+        Test.startTest();
+        Test.setMock(HttpCalloutMock.class, new ChatPhotoImageMocker());
+        System.RunAs(u) {
+            helplightning.HLSessionController.saveChatPhotos(caseId, photosJson);
         }
-
         Test.stopTest();
 
-        // verify an attachment was created
-        // !mwd - This MUST be called after stopTest, since the saveAttachment
-        //  is a future, which means it runs asynchronously, and won't be guaranteed
-        //  to complete until the stopTest is called.
-        // https://developer.salesforce.com/docs/atlas.en-us.234.0.apexcode.meta/apexcode/apex_invoking_future_methods.htm
+        // The file is linked to the Case via ContentDocumentLink. Query the
+        //  ContentVersion through that link so we don't depend on the saving
+        //  user's private library being visible to the test-running context.
+        List<ContentDocumentLink> links =
+            [SELECT ContentDocumentId FROM ContentDocumentLink WHERE LinkedEntityId = :caseId];
+        System.assertEquals(1, links.size());
 
-        // Verify that the ContentVersion was created
-        List<ContentVersion> contentVersions = [SELECT Id FROM ContentVersion];
+        Set<Id> docIds = new Set<Id>();
+        for (ContentDocumentLink link : links) {
+            docIds.add(link.ContentDocumentId);
+        }
+        List<ContentVersion> contentVersions =
+            [SELECT Id, Title FROM ContentVersion WHERE ContentDocumentId IN :docIds AND IsLatest = true];
         System.assertEquals(1, contentVersions.size());
+        System.assertEquals('chat_photo_1.png', contentVersions.get(0).Title);
+    }
+
+    /**
+     * Test that a chat photo already on the record is not saved a second time.
+     */
+    @isTest
+    static void testSaveChatPhotosDuplicate() {
+        helplightning__Help_Lightning_Config__c config = helplightning__Help_Lightning_Config__c.getOrgDefaults();
+        config.helplightning__Save_Attachments__c = true;
+        upsert config;
+
+        Id caseId = [SELECT Id from Case WHERE Subject = 'Case 1' LIMIT 1].Id;
+        User u = [SELECT Id from User WHERE UserName='test-user@helplightning.com' LIMIT 1];
+
+        String photosJson = JSON.serialize(new List<Map<String,Object>>{
+            new Map<String,Object>{
+                'fileName' => 'dup_photo.png',
+                'mimeType' => 'image/png',
+                'url' => 'https://fieldbit-assets.proda.helplightning.net/org/1/dup_photo.png?signed'
+            }
+        });
+
+        Test.startTest();
+        Test.setMock(HttpCalloutMock.class, new ChatPhotoImageMocker());
+        System.RunAs(u) {
+            // Save twice with the same filename; the second call should be a no-op.
+            helplightning.HLSessionController.saveChatPhotos(caseId, photosJson);
+            helplightning.HLSessionController.saveChatPhotos(caseId, photosJson);
+        }
+        Test.stopTest();
+
+        List<ContentDocumentLink> links =
+            [SELECT Id FROM ContentDocumentLink WHERE LinkedEntityId = :caseId];
+        System.assertEquals(1, links.size());
+    }
+
+    /**
+     * Test saving Help Thread chat photos to a Work Order record.
+     */
+    @isTest
+    static void testSaveChatPhotosWorkOrder() {
+        helplightning__Help_Lightning_Config__c config = helplightning__Help_Lightning_Config__c.getOrgDefaults();
+        config.helplightning__Save_Attachments__c = true;
+        upsert config;
+
+        Id workOrderId = [SELECT Id from WorkOrder WHERE Subject = 'Work Order 1' LIMIT 1].Id;
+        User u = [SELECT Id from User WHERE UserName='test-user@helplightning.com' LIMIT 1];
+
+        String photosJson = JSON.serialize(new List<Map<String,Object>>{
+            new Map<String,Object>{
+                'fileName' => 'wo_photo.png',
+                'mimeType' => 'image/png',
+                'url' => 'https://fieldbit-assets.proda.helplightning.net/org/1/wo_photo.png?signed'
+            }
+        });
+
+        Test.startTest();
+        Test.setMock(HttpCalloutMock.class, new ChatPhotoImageMocker());
+        System.RunAs(u) {
+            helplightning.HLSessionController.saveChatPhotos(workOrderId, photosJson);
+        }
+        Test.stopTest();
+
+        List<ContentDocumentLink> links =
+            [SELECT Id FROM ContentDocumentLink WHERE LinkedEntityId = :workOrderId];
+        System.assertEquals(1, links.size());
+    }
+
+    /**
+     * Test that chat photos are not saved when the config gate is off.
+     */
+    @isTest
+    static void testSaveChatPhotosConfigOff() {
+        helplightning__Help_Lightning_Config__c config = helplightning__Help_Lightning_Config__c.getOrgDefaults();
+        config.helplightning__Save_Attachments__c = false;
+        upsert config;
+
+        Id caseId = [SELECT Id from Case WHERE Subject = 'Case 1' LIMIT 1].Id;
+        User u = [SELECT Id from User WHERE UserName='test-user@helplightning.com' LIMIT 1];
+
+        String photosJson = JSON.serialize(new List<Map<String,Object>>{
+            new Map<String,Object>{
+                'fileName' => 'gated_photo.png',
+                'mimeType' => 'image/png',
+                'url' => 'https://fieldbit-assets.proda.helplightning.net/org/1/gated_photo.png?signed'
+            }
+        });
+
+        Test.startTest();
+        Test.setMock(HttpCalloutMock.class, new ChatPhotoImageMocker());
+        System.RunAs(u) {
+            helplightning.HLSessionController.saveChatPhotos(caseId, photosJson);
+        }
+        Test.stopTest();
+
+        List<ContentVersion> contentVersions = [SELECT Id FROM ContentVersion];
+        System.assertEquals(0, contentVersions.size());
     }
 
     @isTest
