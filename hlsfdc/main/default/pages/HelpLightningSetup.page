@@ -35,4 +35,9 @@
       </apex:pageBlockButtons>
     </apex:pageBlock>
   </apex:form>
+
+  <apex:pageBlock title="User Workspaces" rendered="{!isConfigured}">
+    <apex:outputText value="Review each user's email and default workspace. " />
+    <apex:outputLink value="{!$Page.HelpLightning_UserWorkspaces}">Manage user workspaces</apex:outputLink>
+  </apex:pageBlock>
 </apex:page>
